@@ -28,7 +28,7 @@ def aggregate_feedback(source_folder):
         # Read and process valid JSON feedback data
         with open(feedback_file, "r", encoding="utf-8") as file:
             try:
-                feedback_data.append(json.load(file))
+                feedback_data.append((filename, json.load(file)))
             except json.decoder.JSONDecodeError:
                 print(f"Warning: {feedback_file} is not valid JSON and will be skipped")
 
@@ -38,30 +38,49 @@ def aggregate_feedback(source_folder):
         if earliest_date is None or date < earliest_date:
             earliest_date = date
 
+    if not feedback_files:
+        print(f"No feedback files found in {source_folder}")
+        sys.exit(1)
+
     earliest_date_formatted = earliest_date.strftime("%b %d %Y")
 
     # Create a CSV file for storing aggregated feedback data
     output_filename = f"1. Aggregated-Feedback-{earliest_date.strftime('%Y-%m-%d')}.csv"
 
     # Write feedback data to the CSV file in the specified format
-    with open(os.path.join(source_folder, output_filename), "w", encoding="utf-8") as file:
-        for feedback in feedback_data:
+    with open(
+        os.path.join(source_folder, output_filename), "w", encoding="utf-8"
+    ) as file:
+        for filename, feedback in feedback_data:
             survey_metadata = feedback["survey_metadata"]
+            safe_feedback = (
+                feedback["data"]["feedback_text"]
+                .replace("\n", " ")
+                .replace("\r", " ")
+                .replace('"', '""')
+                .strip()
+            )
             file.write(
-                f'{earliest_date_formatted},{survey_metadata["period_id"]},{feedback["data"]["feedback_text"]},'
+                f'{earliest_date_formatted},{survey_metadata["period_id"]},"{safe_feedback}",'
                 f'{feedback["data"]["feedback_type"]},,{survey_metadata["form_type"]},{survey_metadata["ru_ref"]},'
-                f'{feedback["submitted_at"]},{survey_metadata["survey_id"]}\n'
+                f'{feedback["submitted_at"]},{survey_metadata["survey_id"]},{filename}\n'
             )
 
     # Print a message indicating successful processing of feedback files
-    print(f"Processed {len(feedback_data)} feedback files for {earliest_date_formatted}")
+    print(
+        f"Processed {len(feedback_data)} feedback files for {earliest_date_formatted}"
+    )
 
 
 # Entry point of the script
 if __name__ == "__main__":
     # Create a CLI with an optional source folder argument
-    parser = argparse.ArgumentParser(description="Aggregate feedback from a folder of feedback files")
-    parser.add_argument("--source", default="feedback_data", help="Folder containing feedback files")
+    parser = argparse.ArgumentParser(
+        description="Aggregate feedback from a folder of feedback files"
+    )
+    parser.add_argument(
+        "--source", default="feedback_data", help="Folder containing feedback files"
+    )
     args = parser.parse_args()
 
     # Check if the specified source folder exists
