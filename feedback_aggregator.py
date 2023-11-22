@@ -60,9 +60,13 @@ def aggregate_feedback(source_folder):
                 .replace('"', '""')
                 .strip()
             )
+            top_level_id = survey_metadata.get("ru_ref") or survey_metadata.get("qid")
+            period_id = survey_metadata.get("period_id") or "Unknown Period ID"
+            form_type = survey_metadata.get("form_type") or "Unknown Form Type"
+
             file.write(
-                f'{earliest_date_formatted},{survey_metadata["period_id"]},"{safe_feedback}",'
-                f'{feedback["data"]["feedback_type"]},,{survey_metadata["form_type"]},{survey_metadata["ru_ref"]},'
+                f'{earliest_date_formatted},{period_id},"{safe_feedback}",'
+                f'{feedback["data"]["feedback_type"]},,{form_type},{top_level_id},'
                 f'{feedback["submitted_at"]},{survey_metadata["survey_id"]},{filename}\n'
             )
 
