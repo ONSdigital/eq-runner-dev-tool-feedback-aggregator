@@ -1,0 +1,32 @@
+{
+	"aggregated_file_prefix": "Aggregated-Feedback",
+	"source_folder": "feedback_data",
+	"output_fields": [
+		{
+			"name": "period_id",
+			"default_value": "Unknown Period ID"
+		},
+		{
+			"name": "feedback_text"
+		},
+		{
+			"name": "feedback_type"
+		},
+		{
+			"name": "EMPTY_COLUMN"
+		},
+		{
+			"name": "form_type",
+			"default_value": "Unknown Form Type"
+		},
+		{
+			"name": ["ru_ref", "qid"]
+		},
+		{
+			"name": "submitted_at"
+		},
+		{
+			"name": "survey_id"
+		}
+	]
+}
