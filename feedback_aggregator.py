@@ -1,11 +1,8 @@
-import argparse
 import glob
 import json
 import os
 import sys
-from dataclasses import dataclass
 from datetime import datetime
-from typing import Union, IO
 
 BUSINESS_SURVEY_KEY = "business"
 NON_BUSINESS_SURVEY_KEY = "non-business"
@@ -32,19 +29,17 @@ def read_json_file(file_path):
             return None
 
 
-@dataclass
 class OutputField:
-    name: Union[str, list[str]]
-    default_value: str = ""
+    def __init__(self, name, default_value=""):
+        self.name = name
+        self.default_value = default_value
 
 
-@dataclass
 class Config:
-    aggregated_file_prefix: str
-    source_folder: str
-    output_fields: list[OutputField]
-
-    def __post_init__(self):
+    def __init__(self, aggregated_file_prefix, source_folder, output_fields):
+        self.aggregated_file_prefix = aggregated_file_prefix
+        self.source_folder = source_folder
+        self.output_fields = output_fields
 
         # Check if the specified source folder exists
         if not os.path.exists(self.source_folder):
@@ -52,7 +47,7 @@ class Config:
             sys.exit(1)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "Config":
+    def from_dict(cls, data):
         output_fields = data.pop("output_fields")
         return cls(
             **data,
@@ -141,9 +136,7 @@ def get_value_for_output_field_from_feedback(
     return value or output_field.default_value or "No value provided"
 
 
-def write_to_csv(
-    *, file: IO, earliest_submission_formatted: str, feedback: dict, filename: str
-):
+def write_to_csv(*, file, earliest_submission_formatted, feedback, filename):
     """
     Write feedback data to a CSV file.
     """
@@ -158,6 +151,7 @@ def write_to_csv(
         # Write formatted feedback data to the CSV file
         file.write(f"{earliest_submission_formatted},{output_string},{filename}\n")
 
+        print(".", end="\r", flush=True)
     except KeyError as ex:
         print(
             f"Warning: {filename} is missing required fields and will be skipped.{ENDC} - {RED_COLOUR}{ex}{ENDC}{YELLOW_COLOUR}"
@@ -210,6 +204,8 @@ def aggregate_feedback():
             f"Surveys-{first_submission_yyyy_mm_dd}.csv"
         )
 
+        print(f"{YELLOW_COLOUR}Processing '{survey_type}' feedback files ...{ENDC}")
+
         passed = False
         # Write feedback data to the CSV file in the specified format
         with open(
@@ -226,7 +222,8 @@ def aggregate_feedback():
         # Print a message indicating successful processing of feedback files
         print(
             f"{GREEN_COLOUR}Processed {passed}/{len(sorted_feedback)} '{survey_type}' "
-            f"survey feedback files for {first_submission_yyyy_mm_dd}.{ENDC}"
+            f"survey feedback files for {first_submission_yyyy_mm_dd}.{ENDC}",
+            end="\n",
         )
 
 
